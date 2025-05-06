@@ -69,8 +69,8 @@ def draw(radarDisplay, targets, angle, distance, fontRenderer):
 
     radarDisplay.blit(text,(40,80))
 
-    # draw targets
-    for angle in targets.keys():
+    # draw targets - MODIFICACIÓN PRINCIPAL (usamos list() para evitar crash)
+    for angle in list(targets.keys()):
         # calculate the coordinates and the remoteness of the target
         c = math.sin(math.radians(targets[angle].angle)) * 800.0
         d = math.cos(math.radians(targets[angle].angle)) * 800.0
@@ -96,7 +96,7 @@ def draw(radarDisplay, targets, angle, distance, fontRenderer):
         elif diffTime > 2.5 and diffTime <= 3.0:
             targets[angle].color = colors.red6L
         elif diffTime > 3.0:
-            del targets[angle]
+            del targets[angle]  # Ahora es seguro eliminar
 
     # update the screen
     pygame.display.update()
