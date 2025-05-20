@@ -14,24 +14,29 @@ class StepperMotor:
         GPIO.setup(self.step_pin, GPIO.OUT)
         GPIO.setup(self.dir_pin, GPIO.OUT)
         GPIO.setup(self.enable_pin, GPIO.OUT)
-        GPIO.output(self.enable_pin, GPIO.LOW)  # Activar motor
+        GPIO.output(self.enable_pin, GPIO.LOW)  # Activar motor (LOW para habilitar en A4988)
         
     def move_to_angle(self, angle):
-        angle = max(0, min(180, angle))  # Limitar ángulo a 0-180°
+        # Calcular diferencia de pasos
         angle_diff = angle - self.current_angle
         steps = int(angle_diff * self.steps_per_degree)
         
-        GPIO.output(self.dir_pin, GPIO.HIGH if steps > 0 else GPIO.LOW)
-        steps = abs(steps)
+        # Establecer dirección
+        if steps > 0:
+            GPIO.output(self.dir_pin, GPIO.HIGH)  # Sentido horario
+        else:
+            GPIO.output(self.dir_pin, GPIO.LOW)   # Sentido antihorario
+            steps = -steps
         
+        # Generar pulsos para el A4988
         for _ in range(steps):
             GPIO.output(self.step_pin, GPIO.HIGH)
-            time.sleep(0.001)
+            time.sleep(0.0005)  # Pulso de 0.5ms (ajustable según necesidad)
             GPIO.output(self.step_pin, GPIO.LOW)
-            time.sleep(0.001)
+            time.sleep(0.0005)  # Espera entre pulsos
         
         self.current_angle = angle
     
     def cleanup(self):
-        GPIO.output(self.enable_pin, GPIO.HIGH)  # Desactivar motor
+        GPIO.output(self.enable_pin, GPIO.HIGH)  # Desactivar motor (HIGH para deshabilitar en A4988)
         GPIO.cleanup()
