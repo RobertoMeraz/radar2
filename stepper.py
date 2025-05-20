@@ -10,27 +10,23 @@ class StepperMotor:
         self.current_angle = 0
         self.steps_per_degree = steps_per_rev / 360.0
         
+        GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.step_pin, GPIO.OUT)
         GPIO.setup(self.dir_pin, GPIO.OUT)
         GPIO.setup(self.enable_pin, GPIO.OUT)
         GPIO.output(self.enable_pin, GPIO.LOW)  # Activar motor
         
     def move_to_angle(self, angle):
-        # Calcular diferencia de pasos
+        angle = max(0, min(180, angle))  # Limitar ángulo a 0-180°
         angle_diff = angle - self.current_angle
         steps = int(angle_diff * self.steps_per_degree)
         
-        # Establecer dirección
-        if steps > 0:
-            GPIO.output(self.dir_pin, GPIO.HIGH)  # Sentido horario
-        else:
-            GPIO.output(self.dir_pin, GPIO.LOW)   # Sentido antihorario
-            steps = -steps
+        GPIO.output(self.dir_pin, GPIO.HIGH if steps > 0 else GPIO.LOW)
+        steps = abs(steps)
         
-        # Generar pulsos
         for _ in range(steps):
             GPIO.output(self.step_pin, GPIO.HIGH)
-            time.sleep(0.001)  # Ajustar para velocidad deseada
+            time.sleep(0.001)
             GPIO.output(self.step_pin, GPIO.LOW)
             time.sleep(0.001)
         
@@ -38,3 +34,4 @@ class StepperMotor:
     
     def cleanup(self):
         GPIO.output(self.enable_pin, GPIO.HIGH)  # Desactivar motor
+        GPIO.cleanup()
